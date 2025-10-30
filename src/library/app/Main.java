@@ -66,6 +66,16 @@ public final class Main {
                         scanner.close();
                         return;
                     }
+                    case "register" -> {
+                        System.out.print("id: ");
+                        String id = scanner.nextLine().trim();
+                        System.out.print("pw: ");
+                        String pw = scanner.nextLine().trim();
+                        System.out.print("이름: ");
+                        String name = scanner.nextLine().trim();
+                        User newUser = authService.register(id, pw, name);
+                        System.out.println("회원가입 완료: " + newUser.getName());
+                    }
                     case "login" -> {
                         System.out.print("id: ");
                         String id = scanner.nextLine().trim();
@@ -166,6 +176,7 @@ public final class Main {
 
     private static void printHelp() {
         System.out.println("명령어:");
+        System.out.println("  register");
         System.out.println("  login / logout");
         System.out.println("  search <keyword>");
         System.out.println("  loan <isbn>");
