@@ -22,6 +22,18 @@ public class InMemoryBookRepository implements BookRepository {
     }
 
     @Override
+    public List<Book> findByTitleIgnoreCase(String title) {
+        String normalized = title == null ? "" : title.toLowerCase(Locale.ROOT);
+        List<Book> result = new ArrayList<>();
+        for (Book book : booksByIsbn.values()) {
+            if (book.getTitle().toLowerCase(Locale.ROOT).equals(normalized)) {
+                result.add(book);
+            }
+        }
+        return result;
+    }
+
+    @Override
     public List<Book> searchByTitle(String keyword) {
         String lower = keyword == null ? "" : keyword.toLowerCase(Locale.ROOT);
         List<Book> result = new ArrayList<>();
