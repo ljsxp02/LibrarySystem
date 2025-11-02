@@ -73,9 +73,55 @@ public class LoanService {
         bookRepository.save(book);
     }
 
+    /**
+     * Loans a book identified by title (case-insensitive) to the user.
+     */
+    public Loan loanByTitle(User user, String rawTitle, LocalDate today) {
+        Book book = resolveUniqueByTitle(rawTitle);
+        return loan(user, book.getIsbn(), today);
+    }
+
+    /**
+     * Returns a book identified by title (case-insensitive) for the user.
+     */
+    public void returnByTitle(User user, String rawTitle, LocalDate today) {
+        Book book = resolveUniqueByTitle(rawTitle);
+        returnBook(user, book.getIsbn(), today);
+    }
+
     private void requireLogin(User user) {
         if (user == null) {
             throw new AuthException("로그인 필요");
         }
+    }
+
+    private Book resolveUniqueByTitle(String rawTitle) {
+        String normalized = normalize(rawTitle);
+        List<Book> exactMatches = bookRepository.findByTitleIgnoreCase(normalized);
+        List<Book> candidates = exactMatches.isEmpty()
+                ? bookRepository.searchByTitle(normalized)
+                : exactMatches;
+
+        if (candidates.isEmpty()) {
+            throw new NotFoundException("제목 '" + rawTitle + "'으로 검색된 도서가 없습니다.");
+        }
+        if (candidates.size() > 1) {
+            StringBuilder sb = new StringBuilder("같은/유사한 제목이 여러 권입니다. ISBN으로 다시 시도하세요:\n");
+            for (Book book : candidates) {
+                sb.append("- ")
+                  .append(book.getTitle())
+                  .append(" | ")
+                  .append(book.getAuthor())
+                  .append(" | ISBN: ")
+                  .append(book.getIsbn())
+                  .append('\n');
+            }
+            throw new BusinessRuleException(sb.toString());
+        }
+        return candidates.get(0);
+    }
+
+    private String normalize(String value) {
+        return value == null ? "" : value.trim();
     }
 }
